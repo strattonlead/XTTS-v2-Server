@@ -27,4 +27,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/xtts-vs-server-cuda:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/xtts-v2-server-cuda:latest
