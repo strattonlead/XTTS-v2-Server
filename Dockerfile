@@ -4,7 +4,7 @@ FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 
 # Avoid interactive tzdata
 ENV DEBIAN_FRONTEND=noninteractive
-
+ENV COQUI_TOS_AGREED=1
 
 # System deps for soundfile/libsndfile
 RUN apt-get update && apt-get install -y --no-install-recommends \

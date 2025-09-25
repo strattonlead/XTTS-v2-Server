@@ -259,7 +259,7 @@ def synthesize_json(payload: SynthesizeJSON):
                 speaker=speaker or None,
                 speaker_wav=speaker_wav_path,
                 language=lang,
-                style_wav=style_wav_path,
+                #style_wav=style_wav_path,
             )
 
         buf = io.BytesIO()
@@ -284,7 +284,7 @@ def synthesize_multipart(
     sample_rate: Optional[int] = Form(None),
     speaker: Optional[str] = Form(None),
     speaker_wav: Optional[UploadFile] = File(None, description="WAV for cloning (if no registered speaker)"),
-    style_wav: Optional[UploadFile] = File(None, description="Optional style reference WAV"),
+    #style_wav: Optional[UploadFile] = File(None, description="Optional style reference WAV"),
 ):
     payload = SynthesizeJSON(
         text=text,
@@ -292,7 +292,7 @@ def synthesize_multipart(
         sample_rate=sample_rate,
         speaker=speaker,
         speaker_wav_url=None,
-        style_wav_url=None,
+        #style_wav_url=None,
     )
 
     # write uploads to tmp and delegate to same logic
@@ -340,7 +340,7 @@ def synthesize_multipart(
                 speaker=speaker or None,
                 speaker_wav=speaker_wav_path,
                 language=lang,
-                style_wav=tmp_style,
+                #style_wav=tmp_style,
             )
 
         buf = io.BytesIO()
