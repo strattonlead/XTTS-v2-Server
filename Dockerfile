@@ -1,5 +1,5 @@
 # CUDA + PyTorch base (includes torch w/ CUDA). Choose a tag matching your driver.
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+FROM FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 
 
 # Avoid interactive tzdata
