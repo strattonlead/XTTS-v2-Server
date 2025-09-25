@@ -139,6 +139,7 @@ def root():
     return JSONResponse({
         "name": "XTTS-v2 TTS Server",
         "health": "/health",
+        "speakers": "/speakers",
         "synthesize_json": {
             "method": "POST",
             "path": "/synthesize",
