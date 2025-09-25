@@ -129,6 +129,10 @@ def synthesize_multipart(
             except Exception:
                 pass
 
+@app.get("/speakers")
+def list_speakers():
+    tts = get_tts()
+    return {"speakers": getattr(tts, "speakers", [])}
 
 @app.get("/")
 def root():
