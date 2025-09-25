@@ -9,10 +9,12 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 import soundfile as sf
 
-# Coqui TTS API
+# Prevent CPML prompt in non-interactive envs
+os.environ.setdefault("COQUI_TOS_AGREED", "1")
+
 from TTS.api import TTS
 
-app = FastAPI(title="XTTS-v2 TTS Server", version="1.0.1")
+app = FastAPI(title="XTTS-v2 TTS Server", version="1.0.2")
 
 # --- Configuration
 MODEL_NAME = os.getenv("TTS_MODEL_NAME", "tts_models/multilingual/multi-dataset/xtts_v2")
@@ -20,11 +22,8 @@ DEVICE = os.getenv("DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "de")
 DEFAULT_SAMPLE_RATE = int(os.getenv("DEFAULT_SAMPLE_RATE", "24000"))
 
-# Mutex to serialize GPU inference if needed
 from threading import Lock
 _infer_lock = Lock()
-
-# Lazy global model
 _tts: Optional[TTS] = None
 
 
@@ -34,7 +33,6 @@ def get_tts() -> TTS:
     if _tts is None:
         tts = TTS(MODEL_NAME)
         tts = tts.to(DEVICE)
-        _ = tts.speakers  # finish lazy init when applicable
         _tts = tts
     return _tts
 
@@ -53,7 +51,6 @@ class SynthesizeJSON(BaseModel):
 
 @app.post("/synthesize", response_class=StreamingResponse, summary="Synthesize via JSON (optional URL to speaker WAV)")
 def synthesize_json(payload: SynthesizeJSON):
-    """Accepts JSON body. Optionally provide `speaker_wav_url` to clone a voice. Returns WAV stream."""
     text = payload.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Text must not be empty")
@@ -79,18 +76,13 @@ def synthesize_json(payload: SynthesizeJSON):
     try:
         with _infer_lock:
             tts = get_tts()
-            wav = tts.tts(
-                text=text,
-                speaker_wav=speaker_wav_path,
-                language=language,
-            )
+            wav = tts.tts(text=text, speaker_wav=speaker_wav_path, language=language)
 
         buf = io.BytesIO()
         sf.write(buf, wav, sr, format="WAV", subtype="PCM_16")
         buf.seek(0)
-
-        headers = {"Content-Disposition": "inline; filename=tts.wav"}
-        return StreamingResponse(content=buf, media_type="audio/wav", headers=headers)
+        return StreamingResponse(content=buf, media_type="audio/wav",
+                                 headers={"Content-Disposition": "inline; filename=tts.wav"})
     finally:
         if speaker_wav_path and os.path.exists(speaker_wav_path):
             try:
@@ -123,18 +115,13 @@ def synthesize_multipart(
     try:
         with _infer_lock:
             tts = get_tts()
-            wav = tts.tts(
-                text=text,
-                speaker_wav=tmp_path,
-                language=lang,
-            )
+            wav = tts.tts(text=text, speaker_wav=tmp_path, language=lang)
 
         buf = io.BytesIO()
         sf.write(buf, wav, sr, format="WAV", subtype="PCM_16")
         buf.seek(0)
-
-        headers = {"Content-Disposition": "inline; filename=tts.wav"}
-        return StreamingResponse(content=buf, media_type="audio/wav", headers=headers)
+        return StreamingResponse(content=buf, media_type="audio/wav",
+                                 headers={"Content-Disposition": "inline; filename=tts.wav"})
     finally:
         if tmp_path and os.path.exists(tmp_path):
             try:
@@ -151,12 +138,8 @@ def root():
         "synthesize_json": {
             "method": "POST",
             "path": "/synthesize",
-            "body": {
-                "text": "Hallo Welt",
-                "language": "de",
-                "speaker_wav_url": "https://example.com/ref.wav (optional)",
-                "sample_rate": 24000
-            }
+            "body": {"text": "Hallo Welt", "language": "de",
+                     "speaker_wav_url": "https://example.com/ref.wav (optional)", "sample_rate": 24000}
         },
         "synthesize_multipart": {
             "method": "POST",
