@@ -162,10 +162,38 @@ def register_speaker(
     return {"ok": True, "speaker_id": speaker_id, "meta": info}
 
 
-@app.get("/speakers", summary="List registered speakers")
-def list_speakers():
-    return {"speakers": _load_registered_speakers()}
+@app.get("/speakers", summary="List built-in (model) speakers and registered speakers")
+def list_speakers_combined():
+    # built-in speakers from the model (if provided by this TTS version)
+    try:
+        tts = get_tts()
+        builtin = getattr(tts, "speakers", None)
+        if isinstance(builtin, (list, tuple)):
+            builtin = list(builtin)
+        else:
+            builtin = []  # some TTS versions don't expose this
+    except Exception:
+        builtin = []
+    # registered speakers (our enrolled ones)
+    registered = _load_registered_speakers()
+    return {"built_in": builtin, "registered": registered}
 
+
+@app.get("/speakers/builtin", summary="List built-in (model) speakers only")
+def list_speakers_builtin():
+    try:
+        tts = get_tts()
+        builtin = getattr(tts, "speakers", None)
+        if isinstance(builtin, (list, tuple)):
+            return {"speakers": list(builtin)}
+    except Exception:
+        pass
+    return {"speakers": []}
+
+
+@app.get("/speakers/registered", summary="List registered speakers only")
+def list_speakers_registered():
+    return {"speakers": _load_registered_speakers()}
 
 @app.delete("/speakers/{speaker_id}", summary="Delete a registered speaker")
 def delete_speaker(speaker_id: str = FPath(..., description="Speaker ID to delete")):
