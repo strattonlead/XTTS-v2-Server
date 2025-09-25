@@ -74,6 +74,16 @@ Response:
 }
 ```
 
+### Speakers
+
+```bash
+curl -s http://localhost:8000/speakers | jq
+```
+Response:
+```json
+List of speakers in the model
+```
+
 ### JSON Endpoint (`/synthesize`)
 
 ```bash
@@ -82,6 +92,7 @@ curl -X POST http://localhost:8000/synthesize \
   -d '{
     "text": "Hello! This is a test.",
     "language": "en",
+    "speaker": "<speaker_name>"
     "speaker_wav_url": "https://example.com/my-voice.wav",
     "sample_rate": 24000
   }' \
