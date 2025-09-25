@@ -1,16 +1,10 @@
 # CUDA + PyTorch base (includes torch w/ CUDA). Choose a tag matching your driver.
-#FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
-
-RUN apt-get update && apt-get install -y --no-install-recommends python3-pip libsndfile1 && rm -rf /var/lib/apt/lists/*
-RUN python3 -m pip install --upgrade pip
-
-# Nightly Torch für cu128
-RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
 
 # Avoid interactive tzdata
 ENV DEBIAN_FRONTEND=noninteractive
 ENV COQUI_TOS_AGREED=1
+ENV PYTHONWARNINGS="ignore:You are using `torch.load`:FutureWarning"
 
 # System deps for soundfile/libsndfile
 RUN apt-get update && apt-get install -y --no-install-recommends \
