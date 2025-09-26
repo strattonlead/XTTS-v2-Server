@@ -29,13 +29,8 @@ if device not in {"cpu", "cuda"}:
 ISO3_TO_ISO2 = {"deu": "de", "eng": "en"}
 
 # ---- Load model once ----
-# 1) global erlauben (wirkt für alle späteren torch.load-Aufrufe)
-_ALLOWED = [XttsConfig] + [obj for _, obj in inspect.getmembers(xtts_mod, inspect.isclass)]
-add_safe_globals(_ALLOWED)
-
-# 2) zusätzlich den Ladevorgang in einen sicheren Kontext packen (doppelt hält besser)
-with safe_globals([XttsConfig]):
-    tts = TTS(MODEL_NAME).to(device)
+torch.serialization.add_safe_globals([TTS.config.shared_configs.BaseDatasetConfig]) 
+tts = TTS(MODEL_NAME).to(device)
 
 class TTSRequest(BaseModel):
     text: str
