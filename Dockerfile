@@ -1,5 +1,5 @@
 # CUDA + PyTorch base (includes torch w/ CUDA). Choose a tag matching your driver.
-FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
 
 
 # Avoid interactive tzdata
@@ -8,13 +8,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # System deps for soundfile/libsndfile
 RUN apt-get update && apt-get install -y --no-install-recommends \
-libsndfile1 \
-&& rm -rf /var/lib/apt/lists/*
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Optional: set huggingface + coqui caches to persistable locations
 ENV HF_HOME=/root/.cache/huggingface \
-COQUI_TTS_CACHE=/root/.local/share/tts
+    COQUI_TTS_CACHE=/root/.local/share/tts
 
 
 # Workdir
@@ -32,10 +32,10 @@ COPY app ./app
 
 # Env defaults
 ENV TTS_MODEL_NAME=tts_models/multilingual/multi-dataset/xtts_v2 \
-DEVICE=cuda \
-DEFAULT_LANGUAGE=de \
-DEFAULT_SAMPLE_RATE=24000 \
-PYTHONUNBUFFERED=1
+    DEVICE=cuda \
+    DEFAULT_LANGUAGE=de \
+    DEFAULT_SAMPLE_RATE=24000 \
+    PYTHONUNBUFFERED=1
 
 
 # Expose
