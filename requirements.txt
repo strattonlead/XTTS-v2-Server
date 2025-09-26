@@ -1,8 +1,7 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-TTS==0.22.0
-soundfile==0.12.1
-requests==2.32.3
-python-multipart==0.0.9
-transformers==4.49.0
-tokenizers>=0.21,<0.22
+TTS>=0.22.0
+soundfile>=0.12.1
+numpy>=1.23
+scipy>=1.10
+torchmetrics>=1.4
