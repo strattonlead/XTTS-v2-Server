@@ -1,43 +1,33 @@
-# CUDA + PyTorch base (includes torch w/ CUDA). Choose a tag matching your driver.
-FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-runtime
+FROM pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
 
+ENV DEBIAN_FRONTEND=noninteractive \
+    HF_HOME=/root/.cache/huggingface \
+    TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers \
+    HF_HUB_ENABLE_HF_TRANSFER=1 \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    VOICES_DIR=/app/voices \
+    COQUI_TOS_AGREED=1
 
-# Avoid interactive tzdata
-ENV DEBIAN_FRONTEND=noninteractive
-ENV COQUI_TOS_AGREED=1
-ENV PYTHONWARNINGS="ignore:You are using `torch.load`:FutureWarning"
-
-# System deps for soundfile/libsndfile
+# System deps (Audio + optional phonemizer-deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libsndfile1 \
+    libsndfile1 ffmpeg espeak-ng \
     && rm -rf /var/lib/apt/lists/*
 
-# Optional: set huggingface + coqui caches to persistable locations
-ENV HF_HOME=/root/.cache/huggingface \
-    COQUI_TTS_CACHE=/root/.local/share/tts
-
-# Workdir
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt ./
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
-COPY app ./app
+COPY main.py ./
+RUN mkdir -p ${VOICES_DIR}
 
-# Env defaults
-ENV TTS_MODEL_NAME=tts_models/multilingual/multi-dataset/xtts_v2 \
-    DEVICE=cuda \
-    DEFAULT_LANGUAGE=de \
-    DEFAULT_SAMPLE_RATE=24000 \
-    PYTHONUNBUFFERED=1
+# (Optional) Modell schon beim Build cachen – beschleunigt den 1. Request
+RUN python - <<'PY'
+from TTS.api import TTS
+TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+print("XTTS cached.")
+PY
 
-# Expose
 EXPOSE 8000
-
-# Download model at build time (optional, speeds up first run). Comment out if you prefer lazy load at runtime.
-# RUN python -c "from TTS.api import TTS; TTS('${TTS_MODEL_NAME}').to('cpu')"
-
-# Start server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+ENV DEVICE=cuda
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
