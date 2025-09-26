@@ -1,0 +1,8 @@
+app/
+.venv/
+__pycache__/
+*.wav
+voices/
+.git
+.gitignore
+Dockerfile

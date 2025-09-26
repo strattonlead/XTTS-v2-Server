@@ -114,12 +114,12 @@ def synthesize(req: TTSRequest):
 
     speaker_wavs = _collect_voice_samples(req.voice)  # optional list of .wav paths
 
-    # XTTS kann direkt in Memory generieren (waveform + sr)
-    # Wichtige Args: language, speaker_wav(s), speed, split_sentences
+    speaker_arg = speaker_wavs if speaker_wavs and len(speaker_wavs) > 1 else (speaker_wavs[0] if speaker_wavs else None)
+
     wav = tts.tts(
         text=req.text.strip(),
         language=lang,
-        speaker_wav=speaker_wavs if speaker_wavs else None,
+        speaker_wav=speaker_arg,
         speed=req.speed if req.speed else 1.0,
         split_sentences=bool(req.split_sentences),
     )
@@ -131,7 +131,7 @@ def synthesize(req: TTSRequest):
     audio = np.clip(audio, -1.0, 1.0)
     pcm16 = (audio * 32767.0).astype(np.int16)
     buf = io.BytesIO()
-    sf.write(buf, pcm16, sr, subtype="PCM_16")
+    sf.write(buf, pcm16, sr, subtype="PCM_16", format="WAV")
     buf.seek(0)
 
     # Datei-Download
