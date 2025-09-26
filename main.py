@@ -3,6 +3,8 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import List, Optional
 from TTS.api import TTS
+from torch.serialization import add_safe_globals, safe_globals
+from TTS.tts.configs.xtts_config import XttsConfig
 import torch
 import os, io, glob, shutil
 import soundfile as sf  # für Validierung/Laden
@@ -25,7 +27,12 @@ if device not in {"cpu", "cuda"}:
 ISO3_TO_ISO2 = {"deu": "de", "eng": "en"}
 
 # ---- Load model once ----
-tts = TTS(MODEL_NAME).to(device)
+# 1) global erlauben (wirkt für alle späteren torch.load-Aufrufe)
+add_safe_globals([XttsConfig])
+
+# 2) zusätzlich den Ladevorgang in einen sicheren Kontext packen (doppelt hält besser)
+with safe_globals([XttsConfig]):
+    tts = TTS(MODEL_NAME).to(device)
 
 class TTSRequest(BaseModel):
     text: str
