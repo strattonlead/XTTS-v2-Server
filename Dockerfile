@@ -22,11 +22,11 @@ COPY main.py ./
 RUN mkdir -p ${VOICES_DIR}
 
 # (Optional) Modell schon beim Build cachen – beschleunigt den 1. Request
-RUN python - <<'PY'
-from TTS.api import TTS
-TTS("tts_models/multilingual/multi-dataset/xtts_v2")
-print("XTTS cached.")
-PY
+# RUN python - <<'PY'
+# from TTS.api import TTS
+# TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+# print("XTTS cached.")
+# PY
 
 EXPOSE 8000
 ENV DEVICE=cuda
