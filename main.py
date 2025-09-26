@@ -3,7 +3,9 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import List, Optional
 from TTS.api import TTS
+import inspect
 from torch.serialization import add_safe_globals, safe_globals
+import TTS.tts.models.xtts as xtts_mod
 from TTS.tts.configs.xtts_config import XttsConfig
 import torch
 import os, io, glob, shutil
@@ -28,7 +30,8 @@ ISO3_TO_ISO2 = {"deu": "de", "eng": "en"}
 
 # ---- Load model once ----
 # 1) global erlauben (wirkt für alle späteren torch.load-Aufrufe)
-add_safe_globals([XttsConfig])
+_ALLOWED = [XttsConfig] + [obj for _, obj in inspect.getmembers(xtts_mod, inspect.isclass)]
+add_safe_globals(_ALLOWED)
 
 # 2) zusätzlich den Ladevorgang in einen sicheren Kontext packen (doppelt hält besser)
 with safe_globals([XttsConfig]):
