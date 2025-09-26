@@ -13,20 +13,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsndfile1 ffmpeg espeak-ng \
     && rm -rf /var/lib/apt/lists/*
 
+# Workdir
 WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p ${VOICES_DIR}
 
-# (Optional) Modell schon beim Build cachen – beschleunigt den 1. Request
-# RUN python - <<'PY'
-# from TTS.api import TTS
-# TTS("tts_models/multilingual/multi-dataset/xtts_v2")
-# print("XTTS cached.")
-# PY
+# Copy requirements and install
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy app
+COPY main.py ./
+
+# Expose
 EXPOSE 8000
-ENV DEVICE=cuda
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+
+# Start server
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
